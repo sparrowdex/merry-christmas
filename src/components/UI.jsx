@@ -21,7 +21,7 @@ export function UI({ era, setEra, started, onStart, onLetItSnow }) {
   if (!started) {
     return (
       <div style={{ ...panelStyle, top: '50%', bottom: 'auto' }}>
-        <h1>Timeless Snow Globe</h1>
+        <h1 style={{ fontFamily: 'Elegant Woman' }}>Timeless Snow Globe</h1>
         <p>A journey through Christmas memories.</p>
         <button 
           onClick={onStart}
@@ -83,7 +83,7 @@ export function UI({ era, setEra, started, onStart, onLetItSnow }) {
       </div>
 
       <div style={panelStyle}>
-        <h2 style={{ margin: '0 0 10px 0' }}>{era.toUpperCase()}</h2>
+        <h2 style={{ margin: '0 0 10px 0', fontFamily: 'Elegant Woman' }}>{era.charAt(0).toUpperCase() + era.slice(1)}</h2>
         <button onClick={() => setEra(nextEra)}>Time Travel</button>
       </div>
     </>
