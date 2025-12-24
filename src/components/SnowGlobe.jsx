@@ -25,7 +25,7 @@ export function SnowGlobe({ era, windVolume }) {
 
   return (
     <group ref={groupRef}>
-      <Globe />
+      <Globe windVolume={windVolume} />
       <Tree era={era} isTransitioning={isTransitioning} />
       {/* Removed House, Added Snow */}
       <Snow volume={windVolume || 0} era={era} isTransitioning={isTransitioning} />
