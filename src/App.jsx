@@ -5,6 +5,7 @@ import { SnowGlobe } from './components/SnowGlobe';
 import { Intro } from './components/Intro';
 import { UI } from './components/UI';
 import useMicrophone from './hooks/useMicrophone';
+import useShake from './hooks/useShake';
 import './App.css';
 
 function App() {
@@ -13,6 +14,15 @@ function App() {
   const [micGranted, setMicGranted] = useState(false);
   const [isSnowing, setIsSnowing] = useState(false);
   const { windVolume, getMicrophone } = useMicrophone();
+
+  // Shake detection for time travel
+  const handleShake = () => {
+    if (started) {
+      const nextEra = era === 'past' ? 'present' : era === 'present' ? 'future' : 'past';
+      setEra(nextEra);
+    }
+  };
+  useShake(handleShake);
 
   // Audio management - centralized in App.jsx
   const introAudioRef = useRef(null);
