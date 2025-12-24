@@ -22,7 +22,7 @@ We used ElevenLabs AI to bring three distinct narrators to life, guiding you thr
 
 1. **Blow to Swirl the Snow:** Use your microphone to create a blizzard—blow gently to watch the snow dance in the globe.
 
-2. **Time Travel:** Click the "Time Travel" button (or shake your device) to jump between eras:
+2. **Time Travel:** Click the "Time Travel" button to jump between eras:
    - **1920s Sepia:** Nostalgic, warm tones evoking vintage postcards.
    - **2024 Vibrant:** Bold, colorful, and lively like modern celebrations.
    - **2099 Neon:** Futuristic, glowing hues hinting at a high-tech holiday.
