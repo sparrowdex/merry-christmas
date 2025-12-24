@@ -10,10 +10,13 @@ export function Globe({ windVolume = 0 }) {
     if (materialRef.current) {
       // Base roughness is 0.1 (Clear)
       // When you blow (windVolume goes up), target roughness increases to 0.8 (Foggy)
-      // We multiply windVolume by 3 to make it sensitive (easy to fog up)
+      // Device-specific sensitivity: mobile/tablet more sensitive than desktop/laptop
 
       console.log('Wind volume in Globe:', windVolume); // Debug
-      const targetRoughness = 0.1 + (windVolume * 3.0);
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                      window.innerWidth <= 768;
+      const multiplier = isMobile ? 6.0 : 3.0; // Mobile: 6.0, Desktop: 3.0 (original)
+      const targetRoughness = 0.1 + (windVolume * multiplier);
 
       // Clamp the max fog so it doesn't turn into a matte stone (max 0.6 is good)
       const clampedTarget = Math.min(Math.max(targetRoughness, 0.1), 0.6);

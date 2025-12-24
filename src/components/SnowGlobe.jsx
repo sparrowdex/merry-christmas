@@ -5,7 +5,7 @@ import { Tree } from './Tree';
 import { Snow } from './Snow'; // You can add Snow.jsx now too
 import { OrbitControls } from '@react-three/drei';
 
-export function SnowGlobe({ era, windVolume }) {
+export function SnowGlobe({ era, windVolume, isSnowing }) {
   const groupRef = useRef();
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -28,7 +28,7 @@ export function SnowGlobe({ era, windVolume }) {
       <Globe windVolume={windVolume} />
       <Tree era={era} isTransitioning={isTransitioning} />
       {/* Removed House, Added Snow */}
-      <Snow volume={windVolume || 0} era={era} isTransitioning={isTransitioning} />
+      <Snow volume={windVolume || 0} era={era} isTransitioning={isTransitioning} isSnowing={isSnowing} />
       <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI / 3} maxPolarAngle={Math.PI / 1.8} />
     </group>
   );

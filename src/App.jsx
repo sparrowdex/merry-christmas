@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
+import { Sparkles } from '@react-three/drei';
 import { SnowGlobe } from './components/SnowGlobe';
 import { Intro } from './components/Intro';
 import { UI } from './components/UI';
@@ -10,6 +11,7 @@ function App() {
   const [era, setEra] = useState('past');
   const [started, setStarted] = useState(false);
   const [micGranted, setMicGranted] = useState(false);
+  const [isSnowing, setIsSnowing] = useState(false);
   const { windVolume, getMicrophone } = useMicrophone();
 
   // Audio management - centralized in App.jsx
@@ -158,63 +160,85 @@ function App() {
     console.log("Log: User clicked start. Audio context init will go here later.");
   };
 
+  // Handle "Let it Snow" button - toggle continuous snowfall
+  const handleLetItSnow = () => {
+    console.log('Let it Snow button clicked!');
+    setIsSnowing(prev => !prev);
+  };
+
   // 0. MICROPHONE PERMISSION SCREEN
   if (!micGranted) {
     return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        color: 'white',
-        fontFamily: 'Arial, sans-serif',
-        zIndex: 1000
-      }}>
+      <>
+        {/* Microphone permission UI overlay */}
         <div style={{
-          textAlign: 'center',
-          padding: '40px',
-          background: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: '20px',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          maxWidth: '500px'
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          color: 'white',
+          fontFamily: 'Arial, sans-serif',
+          zIndex: 1000,
+          pointerEvents: 'none' // Allow clicks through to Canvas
         }}>
-          <h1 style={{ margin: '0 0 20px 0', fontSize: '2.5rem' }}>🎤 Magic Microphone</h1>
-          <p style={{ margin: '0 0 30px 0', fontSize: '1.2rem', lineHeight: '1.6' }}>
-            To experience the full magic of the Christmas Snow Globe, we need access to your microphone.
-            <br /><br />
-            Blow on your screen to make the snow dance! ✨
-          </p>
-          <button
-            onClick={handleMicPermission}
-            style={{
-              padding: '15px 30px',
-              fontSize: '1.2rem',
-              background: 'white',
-              color: '#667eea',
-              border: 'none',
-              borderRadius: '50px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
-            }}
-            onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
-            onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-          >
-            Allow Microphone Access
-          </button>
-          <p style={{ margin: '20px 0 0 0', fontSize: '0.9rem', opacity: 0.8 }}>
-            You can still enjoy the experience without microphone access.
-          </p>
+          <div style={{
+            textAlign: 'center',
+            padding: '40px',
+            background: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: '20px',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            maxWidth: '500px',
+            pointerEvents: 'auto' // Re-enable for the modal
+          }}>
+            <h1 style={{ margin: '0 0 20px 0', fontSize: '2.5rem' }}>Microphone Permission</h1>
+            <p style={{ margin: '0 0 30px 0', fontSize: '1.2rem', lineHeight: '1.6' }}>
+              To experience the full magic of the Christmas Snow Globe, we need access to your microphone.
+              <br /><br />
+              Once allowed, you may blow on your screen to make the snow dance! ✨
+            </p>
+            <button
+              onClick={handleMicPermission}
+              style={{
+                padding: '15px 30px',
+                fontSize: '1.2rem',
+                background: 'white',
+                color: '#101020',
+                border: 'none',
+                borderRadius: '50px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
+              }}
+              onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
+              onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+            >
+              Allow Microphone Access
+            </button>
+            <p style={{ margin: '20px 0 0 0', fontSize: '0.9rem', opacity: 0.8 }}>
+              You can still enjoy the experience without microphone access.
+            </p>
+          </div>
         </div>
-      </div>
+
+        {/* Same Canvas background as intro page */}
+        <Canvas camera={{ position: [0, 1, 8], fov: 50 }} style={{ background: '#101020' }}>
+          <Sparkles
+            count={200}
+            scale={15}
+            size={3}
+            speed={0.3}
+            opacity={0.7}
+            color="#fff48c"
+          />
+        </Canvas>
+      </>
     );
   }
 
@@ -235,14 +259,14 @@ function App() {
   // 2. EXPERIENCE STATE
   return (
     <>
-      <UI era={era} setEra={(newEra) => setEra(newEra)} started={true} />
+      <UI era={era} setEra={(newEra) => setEra(newEra)} started={true} onLetItSnow={handleLetItSnow} />
 
       <Canvas camera={{ position: [0, 1, 8], fov: 50 }} style={{ background: '#101020' }}>
         <ambientLight intensity={0.2} />
         <directionalLight position={[5, 5, -5]} intensity={1.5} />
 
         {/* SnowGlobe wrapper is now used instead of raw components */}
-        <SnowGlobe era={era} windVolume={windVolume} />
+        <SnowGlobe era={era} windVolume={windVolume} isSnowing={isSnowing} />
       </Canvas>
     </>
   );

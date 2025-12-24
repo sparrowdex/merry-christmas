@@ -23,8 +23,21 @@ const useMicrophone = () => {
 
       const updateVolume = () => {
         analyserRef.current.getByteFrequencyData(dataArrayRef.current);
-        const volume = dataArrayRef.current.reduce((acc, val) => acc + val, 0) / dataArrayRef.current.length / 255;
-        setWindVolume(volume);
+        // Detect mobile/tablet vs desktop
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                        window.innerWidth <= 768;
+
+        if (isMobile) {
+          // Mobile/tablet: use max value for higher sensitivity
+          const maxValue = Math.max(...dataArrayRef.current);
+          const volume = Math.min(maxValue / 128, 1.0);
+          setWindVolume(volume);
+        } else {
+          // Desktop/laptop: use original averaging method but with higher sensitivity
+          const volume = dataArrayRef.current.reduce((acc, val) => acc + val, 0) / dataArrayRef.current.length / 255;
+          // Increase sensitivity by multiplying by 3 and clamping to 1.0
+          setWindVolume(Math.min(volume * 3, 1.0));
+        }
         animationFrameId.current = requestAnimationFrame(updateVolume);
       };
       updateVolume();
