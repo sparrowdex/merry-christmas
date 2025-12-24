@@ -1,23 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Sparkles } from '@react-three/drei';
 
 export function Intro() {
-  const audioRef = useRef(typeof Audio !== 'undefined' && new Audio('/audio/jinglebells.mp3'));
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.loop = true;
-      audio.play().catch(e => console.error("Audio play failed:", e));
-    }
-    return () => {
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    };
-  }, []);
-
+  // Audio logic has been moved to App.jsx for centralized management
   return (
     <group>
       <Sparkles

@@ -4,7 +4,7 @@ import { Points, PointMaterial } from '@react-three/drei'
 
 export function Snow({ volume, era, isTransitioning = false }) {
   const ref = useRef()
-  
+
   // Create 1000 snowflakes
   const positions = useMemo(() => {
     const pos = new Float32Array(1000 * 3)
@@ -12,7 +12,7 @@ export function Snow({ volume, era, isTransitioning = false }) {
       const r = 2.1 * Math.cbrt(Math.random()) // Keep inside globe radius
       const theta = Math.random() * 2 * Math.PI
       const phi = Math.acos(2 * Math.random() - 1)
-      
+
       pos[i * 3] = r * Math.sin(phi) * Math.cos(theta)
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
       pos[i * 3 + 2] = r * Math.cos(phi)
@@ -23,7 +23,7 @@ export function Snow({ volume, era, isTransitioning = false }) {
   useFrame((state, delta) => {
     if (!ref.current) return
     // Blow hard -> Spin fast! Or during transition
-    const speed = isTransitioning ? 4 : (volume > 0.8 ? 0.05 + (volume * 20) : 0)
+    const speed = isTransitioning ? 4 : (volume > 0.1 ? 0.1 + (volume * 15) : 0)
     ref.current.rotation.y += speed * delta
   })
 
