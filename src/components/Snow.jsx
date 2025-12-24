@@ -2,7 +2,7 @@ import React, { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Points, PointMaterial } from '@react-three/drei'
 
-export function Snow({ volume, era }) {
+export function Snow({ volume, era, isTransitioning = false }) {
   const ref = useRef()
   
   // Create 1000 snowflakes
@@ -22,8 +22,8 @@ export function Snow({ volume, era }) {
 
   useFrame((state, delta) => {
     if (!ref.current) return
-    // Blow hard -> Spin fast!
-    const speed = 0.05 + (volume * 20)
+    // Blow hard -> Spin fast! Or during transition
+    const speed = isTransitioning ? 4 : (volume > 0.8 ? 0.05 + (volume * 20) : 0)
     ref.current.rotation.y += speed * delta
   })
 

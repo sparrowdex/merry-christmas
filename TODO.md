@@ -1,10 +1,5 @@
-- [x] Add AppStatus constants to define the three states: REQUESTING_MIC, MIC_READY, EXPERIENCE_STARTED.
-- [x] Replace the 'started' state with a 'status' state initialized to AppStatus.REQUESTING_MIC.
-- [x] Add useRef hooks for musicRef and narrationRef to manage audio elements.
-- [x] Implement handleGrantMic to request microphone permission, set micReady, and transition status to MIC_READY.
-- [x] Implement handleStartExperience to unlock audio, play initial music and narration (intro), and transition status to EXPERIENCE_STARTED.
-- [x] Update the rendering logic to show different UI screens based on status: permission screen for REQUESTING_MIC, start screen with preloaded audio for MIC_READY, and full Canvas/UI for EXPERIENCE_STARTED.
-- [x] Adjust the audio useEffect to trigger only when status is EXPERIENCE_STARTED and micReady is true, handling era-based music and narration playback.
-- [x] Ensure audio elements are preloaded in the MIC_READY screen with initial sources (e.g., past era music and intro narration).
-- [x] Update the Canvas and UI rendering to only show the full experience when status is EXPERIENCE_STARTED.
-- [ ] Test the flow to ensure audio sequences work as intended without interference.
+# TODO: Implement Fast Spinning During Time Travel Transitions
+
+- [x] Update SnowGlobe.jsx: Add isTransitioning state, useEffect to detect era changes and set transition for 2 seconds, increase group rotation speed during transition, pass isTransitioning to Snow and Tree.
+- [x] Update Snow.jsx: Add fast rotation during isTransitioning, maintain normal volume-based rotation otherwise.
+- [x] Update Tree.jsx: Add rotation during isTransitioning.
