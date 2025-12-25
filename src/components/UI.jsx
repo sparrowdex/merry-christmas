@@ -1,6 +1,21 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
 
 export function UI({ era, setEra, started, onStart, onLetItSnow }) {
+  const [showInstruction, setShowInstruction] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Simple mobile detection
+    const mobileCheck = /Mobi|Android/i.test(navigator.userAgent);
+    setIsMobile(mobileCheck);
+
+    if (started) {
+      setShowInstruction(true);
+      const timer = setTimeout(() => setShowInstruction(false), 7000); // Hide after 7 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [started]);
+
   const panelStyle = {
     position: 'absolute',
     bottom: 40,
@@ -14,26 +29,72 @@ export function UI({ era, setEra, started, onStart, onLetItSnow }) {
     color: 'white',
     textAlign: 'center',
     zIndex: 10,
-    pointerEvents: 'auto' 
-  }
+    pointerEvents: 'auto'
+  };
 
+  const instructionStyle = {
+    position: 'absolute',
+    top: '30%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: 'rgba(0, 0, 0, 0.5)',
+    color: 'white',
+    padding: '15px',
+    borderRadius: '10px',
+    textAlign: 'center',
+    zIndex: 100,
+    opacity: showInstruction ? 1 : 0,
+    transition: 'opacity 1s ease-in-out',
+    pointerEvents: 'none',
+  };
+
+  const [introPanelStyle, setIntroPanelStyle] = useState({
+    ...panelStyle,
+    top: '50%',
+    bottom: 'auto',
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIntroPanelStyle({
+          ...panelStyle,
+          top: '30%', // Move up on mobile
+          bottom: 'auto',
+          padding: '15px',
+        });
+      } else {
+        setIntroPanelStyle({
+          ...panelStyle,
+          top: '50%',
+          bottom: 'auto',
+        });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial check
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
   // 1. INTRO MODE (Matches your screenshot)
   if (!started) {
     return (
-      <div style={{ ...panelStyle, top: '50%', bottom: 'auto' }}>
-        <h1 style={{ fontFamily: 'Elegant Woman' }}>Timeless Snow Globe</h1>
-        <p>A journey through Christmas memories.</p>
-        <button 
+      <div style={introPanelStyle}>
+        <h1 style={{ fontFamily: 'Elegant Woman', fontSize: window.innerWidth < 768 ? '2rem' : '3rem' }}>Timeless Snow Globe</h1>
+        <p style={{ fontSize: window.innerWidth < 768 ? '0.9rem' : '1rem' }}>A journey through Christmas memories.</p>
+        <button
           onClick={onStart}
-          style={{ 
+          style={{
             marginTop: '15px',
-            padding: '12px 24px', 
-            fontSize: '1.2rem', 
-            cursor: 'pointer', 
-            background: 'white', 
-            border: 'none', 
-            borderRadius: '30px', 
-            color: 'black' 
+            padding: '12px 24px',
+            fontSize: '1.2rem',
+            cursor: 'pointer',
+            background: 'white',
+            border: 'none',
+            borderRadius: '30px',
+            color: 'black'
           }}
         >
           Enter Experience
@@ -46,6 +107,17 @@ export function UI({ era, setEra, started, onStart, onLetItSnow }) {
   const nextEra = era === 'past' ? 'present' : era === 'present' ? 'future' : 'past';
   return (
     <>
+      {/* Instruction Text */}
+      {showInstruction && (
+        <div style={instructionStyle}>
+          <p style={{ margin: 0, fontSize: '1rem' }}>
+            {isMobile
+              ? "Blow near your device's charging port to see the magic!"
+              : "Blow towards your screen to fog up the glass!"}
+          </p>
+        </div>
+      )}
+
       {/* "Let it Snow" button in top right */}
       <div style={{
         position: 'absolute',
