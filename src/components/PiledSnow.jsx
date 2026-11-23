@@ -1,4 +1,6 @@
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo } from 'react';
+import { Moon, PastVillage, SantaSleigh, FutureKid, FutureTown } from './SnowWorlds';
+import { groundHeight } from '../utils/terrain';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -23,84 +25,86 @@ function createNoiseTexture() {
   return texture;
 }
 
-// --- UPDATED SUB-COMPONENT: The Realistic North Star ---
-function NorthStar({ growthProgress = 0 }) {
+// --- SUB-COMPONENT: The North Star ---
+// Drawn like a real bright star seen through the atmosphere / a lens:
+// a hot white core, soft halo and thin diffraction rays that fade out.
+function createStarTexture() {
+  const size = 512;
+  const c = size / 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  // Soft halo
+  const halo = ctx.createRadialGradient(c, c, 0, c, c, c);
+  halo.addColorStop(0, 'rgba(255,255,255,1)');
+  halo.addColorStop(0.04, 'rgba(255,255,255,0.95)');
+  halo.addColorStop(0.1, 'rgba(210,230,255,0.45)');
+  halo.addColorStop(0.3, 'rgba(160,200,255,0.12)');
+  halo.addColorStop(1, 'rgba(120,170,255,0)');
+  ctx.fillStyle = halo;
+  ctx.fillRect(0, 0, size, size);
+
+  // Diffraction rays: long thin cross + shorter faint diagonals
+  const ray = (angle, length, width, alpha) => {
+    ctx.save();
+    ctx.translate(c, c);
+    ctx.rotate(angle);
+    const g = ctx.createLinearGradient(0, 0, length, 0);
+    g.addColorStop(0, `rgba(255,255,255,${alpha})`);
+    g.addColorStop(0.3, `rgba(220,235,255,${alpha * 0.4})`);
+    g.addColorStop(1, 'rgba(200,220,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, -width);
+    ctx.lineTo(length, 0);
+    ctx.lineTo(0, width);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  };
+  for (let i = 0; i < 4; i++) ray((i * Math.PI) / 2, c, 3, 0.9);
+  for (let i = 0; i < 4; i++) ray((i * Math.PI) / 2 + Math.PI / 4, c * 0.45, 1.5, 0.45);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function NorthStar({ growth }) {
   const starPosition = [15, 25, -45];
+  const texture = useMemo(() => createStarTexture(), []);
+  const flareRef = useRef();
+  const glowRef = useRef();
+  const lightRef = useRef();
+
+  useFrame((state) => {
+    const growthProgress = growth.current;
+    if (lightRef.current) lightRef.current.intensity = 2.5 * growthProgress;
+    const t = state.clock.getElapsedTime();
+    // Atmospheric twinkle: a few overlapping frequencies so it never looks looped
+    const twinkle = 1 + Math.sin(t * 3.1) * 0.06 + Math.sin(t * 7.7) * 0.04 + Math.sin(t * 13.3) * 0.02;
+    if (flareRef.current) {
+      flareRef.current.scale.setScalar(14 * twinkle * growthProgress);
+      flareRef.current.material.rotation = Math.sin(t * 0.2) * 0.03;
+    }
+    if (glowRef.current) {
+      glowRef.current.scale.setScalar(30 * growthProgress);
+      glowRef.current.material.opacity = 0.18 * twinkle;
+    }
+  });
 
   return (
-    <group position={starPosition} scale={growthProgress}>
-      {/* 1. Light Source */}
-      <pointLight 
-        color="#cceeff" 
-        intensity={2.5} 
-        distance={150} 
-        decay={2}      
-      />
-
-      {/* 2. Core */}
-      <mesh>
-        <sphereGeometry args={[0.6, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" toneMapped={false} />
-      </mesh>
-
-      {/* 3. The "Ninja Star" Spikes (Lens Flare) 
-          Using additive blending makes them look like light rays.
-      */}
-      {/* Group for the main cross */}
-      <group>
-        {/* Vertical Spike */}
-        <mesh position={[0, 3.5, 0]}>
-           <coneGeometry args={[0.15, 7, 8]} />
-           <meshBasicMaterial color="#ffffff" transparent opacity={0.9} toneMapped={false} blending={THREE.AdditiveBlending} />
-        </mesh>
-        <mesh position={[0, -3.5, 0]} rotation={[Math.PI, 0, 0]}>
-           <coneGeometry args={[0.15, 7, 8]} />
-           <meshBasicMaterial color="#ffffff" transparent opacity={0.9} toneMapped={false} blending={THREE.AdditiveBlending} />
-        </mesh>
-        {/* Horizontal Spike */}
-        <mesh position={[3.5, 0, 0]} rotation={[0, 0, -Math.PI/2]}>
-           <coneGeometry args={[0.15, 7, 8]} />
-           <meshBasicMaterial color="#ffffff" transparent opacity={0.9} toneMapped={false} blending={THREE.AdditiveBlending} />
-        </mesh>
-        <mesh position={[-3.5, 0, 0]} rotation={[0, 0, Math.PI/2]}>
-           <coneGeometry args={[0.15, 7, 8]} />
-           <meshBasicMaterial color="#ffffff" transparent opacity={0.9} toneMapped={false} blending={THREE.AdditiveBlending} />
-        </mesh>
-      </group>
-
-      {/* Group for the smaller diagonal cross */}
-      <group rotation={[0, 0, Math.PI/4]} scale={[0.6, 0.6, 0.6]}>
-        <mesh position={[0, 3.5, 0]}>
-           <coneGeometry args={[0.15, 7, 8]} />
-           <meshBasicMaterial color="#ffffff" transparent opacity={0.6} toneMapped={false} blending={THREE.AdditiveBlending} />
-        </mesh>
-        <mesh position={[0, -3.5, 0]} rotation={[Math.PI, 0, 0]}>
-           <coneGeometry args={[0.15, 7, 8]} />
-           <meshBasicMaterial color="#ffffff" transparent opacity={0.6} toneMapped={false} blending={THREE.AdditiveBlending} />
-        </mesh>
-        <mesh position={[3.5, 0, 0]} rotation={[0, 0, -Math.PI/2]}>
-           <coneGeometry args={[0.15, 7, 8]} />
-           <meshBasicMaterial color="#ffffff" transparent opacity={0.6} toneMapped={false} blending={THREE.AdditiveBlending} />
-        </mesh>
-        <mesh position={[-3.5, 0, 0]} rotation={[0, 0, Math.PI/2]}>
-           <coneGeometry args={[0.15, 7, 8]} />
-           <meshBasicMaterial color="#ffffff" transparent opacity={0.6} toneMapped={false} blending={THREE.AdditiveBlending} />
-        </mesh>
-      </group>
-
-      {/* 4. Seamless Glow (Additive spheres) */}
-      <mesh>
-        <sphereGeometry args={[2, 32, 32]} />
-        <meshBasicMaterial color="#aaddff" transparent opacity={0.25} depthWrite={false} toneMapped={false} blending={THREE.AdditiveBlending} />
-      </mesh>
-      <mesh>
-        <sphereGeometry args={[4, 32, 32]} />
-        <meshBasicMaterial color="#aaddff" transparent opacity={0.15} depthWrite={false} toneMapped={false} blending={THREE.AdditiveBlending} />
-      </mesh>
-       <mesh>
-        <sphereGeometry args={[8, 32, 32]} />
-        <meshBasicMaterial color="#aaddff" transparent opacity={0.05} depthWrite={false} toneMapped={false} blending={THREE.AdditiveBlending} />
-      </mesh>
+    <group position={starPosition}>
+      <pointLight ref={lightRef} color="#cceeff" intensity={0} distance={150} decay={2} />
+      {/* Wide, very faint sky glow */}
+      <sprite ref={glowRef} scale={0}>
+        <spriteMaterial map={texture} color="#9cc4ff" transparent opacity={0.18} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+      </sprite>
+      {/* Core + rays */}
+      <sprite ref={flareRef} scale={0}>
+        <spriteMaterial map={texture} transparent depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+      </sprite>
     </group>
   );
 }
@@ -159,7 +163,7 @@ function GingerbreadHouse({ scale = 0 }) {
   }, [materials]);
 
   return (
-    <group position={[0, -5.5, -12]} scale={[scale, scale, scale]}>
+    <group scale={[scale, scale, scale]}>
       <mesh position={[0, 1.5, 0]} material={materials.cookie}>
         <boxGeometry args={[4.5, 3.5, 3.5]} />
       </mesh>
@@ -220,10 +224,31 @@ function GingerbreadHouse({ scale = 0 }) {
 }
 
 // --- MAIN COMPONENT ---
-export function PiledSnow({ isSnowing }) {
+// Era-specific scale-in worlds. Each is anchored at the origin and grows in with the snow.
+function EraWorld({ era }) {
+  if (era === 'past') return <PastVillage />;
+  if (era === 'future') return (
+    <>
+      <FutureTown />
+      <FutureKid />
+    </>
+  );
+  return (
+    <>
+      <group position={[-7, groundHeight(-7, -13) + 0.3, -13]} rotation={[0, 0.5, 0]}>
+        <GingerbreadHouse scale={1} />
+      </group>
+      <SantaSleigh />
+    </>
+  );
+}
+
+export function PiledSnow({ isSnowing, era }) {
   const meshRef = useRef();
   const groundRef = useRef();
-  const [growthProgress, setGrowthProgress] = useState(0);
+  const worldRef = useRef();
+  const growth = useRef(0);
+  const progress = useRef(0); // linear 0..1 timeline, eased into growth
 
   // 1. STAND SNOW
   const standGeometry = useMemo(() => {
@@ -241,18 +266,17 @@ export function PiledSnow({ isSnowing }) {
     return geo;
   }, []);
 
-  // 2. GROUND GEOMETRY
+  // 2. GROUND GEOMETRY (heights must match groundHeight() in SnowWorlds.jsx)
   const groundGeometry = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(60, 60, 128, 128); 
+    const geo = new THREE.PlaneGeometry(60, 60, 128, 128);
     const pos = geo.attributes.position;
     const v = new THREE.Vector3();
-    
     for (let i = 0; i < pos.count; i++) {
       v.fromBufferAttribute(pos, i);
-      let height = Math.sin(v.x * 0.15) * 1.2; 
-      height += Math.cos(v.y * 0.2) * 1.0;     
-      height += Math.sin(v.x * 0.5 + v.y * 0.5) * 0.3; 
-      v.z = height; 
+      let height = Math.sin(v.x * 0.15) * 1.2;
+      height += Math.cos(v.y * 0.2) * 1.0;
+      height += Math.sin(v.x * 0.5 + v.y * 0.5) * 0.3;
+      v.z = height;
       pos.setXYZ(i, v.x, v.y, v.z);
     }
     geo.computeVertexNormals();
@@ -260,51 +284,40 @@ export function PiledSnow({ isSnowing }) {
   }, []);
 
   useFrame((state, delta) => {
-    const targetScale = isSnowing ? 1 : 0;
-    const speed = isSnowing ? 0.3 : 1.5; 
-    let newProgress = THREE.MathUtils.lerp(growthProgress, targetScale, delta * speed);
-    setGrowthProgress(newProgress);
+    // Fixed-length eased rise (4s in, 1.5s out) so the world fully arrives instead of creeping
+    const step = Math.min(delta, 1 / 30) / (isSnowing ? 4 : 1.5);
+    progress.current = THREE.MathUtils.clamp(progress.current + (isSnowing ? step : -step), 0, 1);
+    const g = THREE.MathUtils.smootherstep(progress.current, 0, 1);
+    growth.current = g;
 
-    if (meshRef.current) {
-      meshRef.current.scale.setScalar(newProgress);
-    }
-
+    if (meshRef.current) meshRef.current.scale.setScalar(g);
     if (groundRef.current) {
-      groundRef.current.scale.setScalar(newProgress);
-      groundRef.current.material.opacity = Math.max(0, newProgress); 
+      groundRef.current.scale.setScalar(g);
+      groundRef.current.material.opacity = Math.max(0, g);
+    }
+    if (worldRef.current) {
+      // Rise up out of the snow rather than scaling from the centre of the scene
+      worldRef.current.position.y = (1 - g) * -12;
+      worldRef.current.visible = g > 0.01;
     }
   });
 
   return (
     <>
-      <NorthStar growthProgress={growthProgress} />
+      <NorthStar growth={growth} />
+      <Moon />
 
-      <mesh 
-        ref={meshRef} 
-        geometry={standGeometry}
-        position={[0, -2.3, 0]} 
-        rotation={[Math.PI / 2, 0, 0]}
-        scale={[0, 0, 0]}
-      >
+      <mesh ref={meshRef} geometry={standGeometry} position={[0, -2.3, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[0, 0, 0]}>
         <meshStandardMaterial color="#ffffff" roughness={0.8} />
       </mesh>
 
-      <mesh
-        ref={groundRef}
-        geometry={groundGeometry}
-        position={[0, -6, -10]} 
-        rotation={[-Math.PI / 2, 0, 0]} 
-        scale={[0, 0, 0]}
-      >
-        <meshStandardMaterial 
-          color="#ffffff" 
-          roughness={1}
-          transparent={true} 
-          opacity={0}
-        />
+      <mesh ref={groundRef} geometry={groundGeometry} position={[0, -6, -10]} rotation={[-Math.PI / 2, 0, 0]} scale={[0, 0, 0]}>
+        <meshStandardMaterial color="#ffffff" roughness={1} transparent opacity={0} />
       </mesh>
 
-      <GingerbreadHouse scale={growthProgress} />
+      <group ref={worldRef} visible={false}>
+        <EraWorld era={era} />
+      </group>
     </>
   );
 }

@@ -48,57 +48,30 @@ export function UI({ era, setEra, started, onStart, onLetItSnow }) {
     pointerEvents: 'none',
   };
 
-  const [introPanelStyle, setIntroPanelStyle] = useState({
-    ...panelStyle,
-    top: '50%',
-    bottom: 'auto',
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setIntroPanelStyle({
-          ...panelStyle,
-          top: '30%', // Move up on mobile
-          bottom: 'auto',
-          padding: '15px',
-        });
-      } else {
-        setIntroPanelStyle({
-          ...panelStyle,
-          top: '50%',
-          bottom: 'auto',
-        });
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Initial check
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
   // 1. INTRO MODE (Matches your screenshot)
   if (!started) {
     return (
-      <div style={introPanelStyle}>
-        <h1 style={{ fontFamily: 'Elegant Woman', fontSize: window.innerWidth < 768 ? '2rem' : '3rem' }}>Timeless Snow Globe</h1>
-        <p style={{ fontSize: window.innerWidth < 768 ? '0.9rem' : '1rem' }}>A journey through Christmas memories.</p>
-        <button
-          onClick={onStart}
-          style={{
-            marginTop: '15px',
-            padding: '12px 24px',
-            fontSize: '1.2rem',
-            cursor: 'pointer',
-            background: 'white',
-            border: 'none',
-            borderRadius: '30px',
-            color: 'black'
-          }}
-        >
-          Enter Experience
-        </button>
+      <div className="landing">
+        <div className="landing-glow" />
+        <div className="landing-card">
+          <p className="landing-eyebrow">✦ A Christmas Carol in Glass ✦</p>
+          <h1 className="landing-title landing-title-large">Timeless Snow Globe</h1>
+          <div className="landing-divider"><span>❄</span></div>
+          <p className="landing-text">
+            Three spirits. Three Christmases. One globe.
+            <br />
+            Travel through the <em>Past</em>, <em>Present</em> and <em>Future</em>.
+          </p>
+          <div className="landing-eras" aria-hidden="true">
+            <span className="era-chip era-chip-past">Past</span>
+            <span className="era-chip era-chip-present">Present</span>
+            <span className="era-chip era-chip-future">Future</span>
+          </div>
+          <button className="landing-button" onClick={onStart}>
+            Enter the Globe
+          </button>
+          <p className="landing-hint">🎧 Best with sound on</p>
+        </div>
       </div>
     )
   }
@@ -155,9 +128,9 @@ export function UI({ era, setEra, started, onStart, onLetItSnow }) {
       </div>
 
       <div style={panelStyle}>
-        <h2 style={{ margin: '0 0 10px 0', fontFamily: 'Elegant Woman' }}>{era.charAt(0).toUpperCase() + era.slice(1)}</h2>
-        <button onClick={() => setEra(nextEra)}>Time Travel</button>
-      </div>
+          <h2 style={{ margin: '0 0 10px 0', fontFamily: 'Elegant Woman' }}>{era.charAt(0).toUpperCase() + era.slice(1)}</h2>
+          <button onClick={() => setEra(nextEra)}>Time Travel</button>
+        </div>
     </>
   )
 }

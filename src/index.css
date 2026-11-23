@@ -1,6 +1,7 @@
 @font-face {
   font-family: 'Elegant Woman';
   src: url('./fonts/ElegantWomanDemo-2O9Ve.ttf') format('truetype');
+  font-display: swap;
 }
 
 :root {

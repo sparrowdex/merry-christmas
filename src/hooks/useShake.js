@@ -5,9 +5,20 @@ const useShake = (onShake, threshold = 15) => {
   const lastShakeTime = useRef(0);
 
   useEffect(() => {
+    // Check if device motion is supported
+    if (!window.DeviceMotionEvent) {
+      console.log('useShake: DeviceMotionEvent not supported on this device.');
+      return;
+    }
+
+    console.log('useShake: Adding devicemotion event listener.');
+
     const handleDeviceMotion = (event) => {
       const { accelerationIncludingGravity } = event;
-      if (!accelerationIncludingGravity) return;
+      if (!accelerationIncludingGravity || accelerationIncludingGravity.x === null) {
+        // Device doesn't have accelerometer (e.g., laptop), rely on keyboard simulation
+        return;
+      }
 
       const { x, y, z } = accelerationIncludingGravity;
       const currentTime = Date.now();

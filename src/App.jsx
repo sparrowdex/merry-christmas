@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Sparkles } from '@react-three/drei';
 import { SnowGlobe } from './components/SnowGlobe';
 import { Intro } from './components/Intro';
 import { UI } from './components/UI';
+import { Ambience } from './components/Ambience';
 import useMicrophone from './hooks/useMicrophone';
 import useShake from './hooks/useShake';
 import './App.css';
@@ -180,73 +180,29 @@ function App() {
   if (!micGranted) {
     return (
       <>
-        {/* Microphone permission UI overlay */}
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: 'white',
-          fontFamily: 'Arial, sans-serif',
-          zIndex: 1000,
-          pointerEvents: 'none' // Allow clicks through to Canvas
-        }}>
-          <div style={{
-            textAlign: 'center',
-            padding: '40px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '20px',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            maxWidth: '500px',
-            pointerEvents: 'auto' // Re-enable for the modal
-          }}>
-            <h1 style={{ margin: '0 0 20px 0', fontSize: '2.5rem' }}>Microphone Permission</h1>
-            <p style={{ margin: '0 0 30px 0', fontSize: '1.2rem', lineHeight: '1.6' }}>
-              To experience the full magic of the Christmas Snow Globe, we need access to your microphone.
-              <br /><br />
-              Once allowed, you may blow on your screen to make the snow dance! ✨
+        <div className="landing">
+          <div className="landing-glow" />
+          <div className="landing-card">
+            <p className="landing-eyebrow">✦ Before we begin ✦</p>
+            <div className="landing-icon" aria-hidden="true">🎙️</div>
+            <h1 className="landing-title">A Little Magic Breath</h1>
+            <div className="landing-divider"><span>❄</span></div>
+            <p className="landing-text">
+              This snow globe listens. Allow your microphone, then
+              <strong> blow gently on your screen</strong> to fog the glass and
+              send the snow swirling.
             </p>
-            <button
-              onClick={handleMicPermission}
-              style={{
-                padding: '15px 30px',
-                fontSize: '1.2rem',
-                background: 'white',
-                color: '#101020',
-                border: 'none',
-                borderRadius: '50px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
-              }}
-              onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
-              onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-            >
-              Allow Microphone Access
+            <button className="landing-button" onClick={handleMicPermission}>
+              Allow Microphone
             </button>
-            <p style={{ margin: '20px 0 0 0', fontSize: '0.9rem', opacity: 0.8 }}>
-              You can still enjoy the experience without microphone access.
-            </p>
+            <button className="landing-link" onClick={() => setMicGranted(true)}>
+              Continue without it
+            </button>
           </div>
         </div>
 
-        {/* Same Canvas background as intro page */}
-        <Canvas camera={{ position: [0, 1, 8], fov: 50 }} style={{ background: '#101020' }}>
-          <Sparkles
-            count={200}
-            scale={15}
-            size={3}
-            speed={0.3}
-            opacity={0.7}
-            color="#fff48c"
-          />
+        <Canvas camera={{ position: [0, 1, 8], fov: 50 }}>
+          <Intro />
         </Canvas>
       </>
     );
@@ -259,7 +215,7 @@ function App() {
         {/* FIX: We must render UI here to show the "Enter Experience" button */}
         <UI era={era} setEra={setEra} started={false} onStart={handleStart} />
 
-        <Canvas camera={{ position: [0, 1, 8], fov: 50 }} style={{ background: '#101020' }}>
+        <Canvas camera={{ position: [0, 1, 8], fov: 50 }}>
            <Intro />
         </Canvas>
       </>
@@ -269,15 +225,28 @@ function App() {
   // 2. EXPERIENCE STATE
   return (
     <>
-      <UI era={era} setEra={(newEra) => setEra(newEra)} started={true} onLetItSnow={handleLetItSnow} />
+      <UI
+        era={era}
+        setEra={(newEra) => setEra(newEra)}
+        started={true}
+        onLetItSnow={handleLetItSnow}
+      />
 
-      <Canvas camera={{ position: [0, 1, 8], fov: 50 }} style={{ background: '#101020' }}>
-        <ambientLight intensity={0.2} />
-        <directionalLight position={[5, 5, -5]} intensity={1.5} />
+      {/* Era filter wraps the whole canvas so EVERYTHING (incl. Let it Snow scene) gets the look */}
+      <div className={`era-scene era-${era}`}>
+        <Canvas camera={{ position: [0, 1, 8], fov: 50, near: 0.01, far: 400 }}>
+          <ambientLight intensity={0.25} />
+          <directionalLight position={[5, 5, -5]} intensity={1.5} />
 
-        {/* SnowGlobe wrapper is now used instead of raw components */}
-        <SnowGlobe era={era} windVolume={windVolume} isSnowing={isSnowing} />
-      </Canvas>
+          <Ambience era={era} />
+
+          {/* SnowGlobe wrapper is now used instead of raw components */}
+          <SnowGlobe era={era} windVolume={windVolume} isSnowing={isSnowing} />
+        </Canvas>
+      </div>
+
+      {/* Vignette + film grain, only visible in the Past */}
+      <div className={`era-overlay ${era === 'past' ? 'visible' : ''}`} />
     </>
   );
 }
